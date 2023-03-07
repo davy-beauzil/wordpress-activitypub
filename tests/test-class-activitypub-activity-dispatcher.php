@@ -11,9 +11,23 @@ class Test_Activitypub_Activity_Dispatcher extends ActivityPub_TestCase_Cache_HT
 			'inbox' => 'https://example.com/author/jon/inbox',
 			'name'  => 'jon',
 		),
+		'john@example.com' => array(
+			'url' => 'https://example.com/author/john',
+			'inbox' => 'https://example.com/author/john/inbox',
+			'name'  => 'jean',
+		),
+		'doe@example.com' => array(
+			'url' => 'https://example.org/users/doe',
+			'inbox' => 'https://example.com/author/doe/inbox',
+			'name'  => 'marc',
+		),
 	);
 
 	public function test_dispatch_activity() {
+		$global_user_followers = array( 'https://example.com/author/john', 'https://example.org/users/doe' );
+		$global_user_id = \wp_create_user( 'global-user', 'password', 'global-user@test.com');
+		\update_user_meta( $global_user_id, 'activitypub_followers', $global_user_followers );
+
 		$followers = array( 'https://example.com/author/jon', 'https://example.org/users/username' );
 		\update_user_meta( 1, 'activitypub_followers', $followers );
 
@@ -32,13 +46,19 @@ class Test_Activitypub_Activity_Dispatcher extends ActivityPub_TestCase_Cache_HT
 
 		$this->assertNotEmpty( $activitypub_post->get_content() );
 
-		$this->assertSame( 2, $pre_http_request->get_call_count() );
+		$this->assertSame( 4, $pre_http_request->get_call_count() );
 		$all_args = $pre_http_request->get_args();
 		$first_call_args = array_shift( $all_args );
 		$this->assertEquals( 'https://example.com/author/jon/inbox', $first_call_args[2] );
 
 		$second_call_args = array_shift( $all_args );
 		$this->assertEquals( 'https://example.org/users/username/inbox', $second_call_args[2] );
+
+		$third_call_args = array_shift( $all_args );
+		$this->assertEquals( 'https://example.com/author/john/inbox', $third_call_args[2] );
+
+		$fourth_call_args = array_shift( $all_args );
+		$this->assertEquals( 'https://example.com/author/doe/inbox', $fourth_call_args[2] );
 
 		remove_filter( 'pre_http_request', array( $pre_http_request, 'filter' ), 10 );
 	}

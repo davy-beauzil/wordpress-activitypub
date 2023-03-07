@@ -26,15 +26,21 @@ class Activity_Dispatcher {
 	public static function send_post_activity( Model\Post $activitypub_post ) {
 		// get latest version of post
 		$user_id = $activitypub_post->get_post_author();
+		$global_user_id = 2; // TODO: récupérer l'ID de l'utilisateur global
 
 		$activitypub_activity = new \Activitypub\Model\Activity( 'Create', \Activitypub\Model\Activity::TYPE_FULL );
 		$activitypub_activity->from_post( $activitypub_post );
 
-		$inboxes = \Activitypub\get_follower_inboxes( $user_id );
+		$user_inboxes = \Activitypub\get_follower_inboxes( $user_id );
+		$global_user_inboxes = \Activitypub\get_follower_inboxes( $global_user_id );
+		$inboxes = array_merge($user_inboxes, $global_user_inboxes);
 
-		$followers_url = \get_rest_url( null, '/activitypub/1.0/users/' . intval( $user_id ) . '/followers' );
+		$user_followers_url = \get_rest_url( null, '/activitypub/1.0/users/' . intval( $user_id ) . '/followers' );
+		$global_followers_url = \get_rest_url( null, '/activitypub/1.0/users/' . intval( $global_user_id ) . '/followers' );
+		$followers_urls = [$user_followers_url, $global_followers_url];
+
 		foreach ( $activitypub_activity->get_cc() as $cc ) {
-			if ( $cc === $followers_url ) {
+			if (in_array($cc, $followers_urls, true)) {
 				continue;
 			}
 			$inbox = \Activitypub\get_inbox_by_actor( $cc );
