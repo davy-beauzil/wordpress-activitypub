@@ -76,11 +76,19 @@ class Activity_Dispatcher {
 	public static function send_update_activity( $activitypub_post ) {
 		// get latest version of post
 		$user_id = $activitypub_post->get_post_author();
+		$global_actor = \get_option('activitypub_global_actor');
+		$global_user = \get_user_by('login', $global_actor);
 
 		$activitypub_activity = new \Activitypub\Model\Activity( 'Update', \Activitypub\Model\Activity::TYPE_FULL );
 		$activitypub_activity->from_post( $activitypub_post );
 
-		foreach ( \Activitypub\get_follower_inboxes( $user_id ) as $inbox => $to ) {
+		$inboxes = \Activitypub\get_follower_inboxes( $user_id );
+		if($global_user){
+			$global_user_inboxes = \Activitypub\get_follower_inboxes( $global_user->ID );
+			$inboxes = array_merge($inboxes, $global_user_inboxes);
+		}
+
+		foreach ( $inboxes as $inbox => $to ) {
 			$activitypub_activity->set_to( $to );
 			$activity = $activitypub_activity->to_json(); // phpcs:ignore
 
@@ -96,11 +104,19 @@ class Activity_Dispatcher {
 	public static function send_delete_activity( $activitypub_post ) {
 		// get latest version of post
 		$user_id = $activitypub_post->get_post_author();
+		$global_actor = \get_option('activitypub_global_actor');
+		$global_user = \get_user_by('login', $global_actor);
 
 		$activitypub_activity = new \Activitypub\Model\Activity( 'Delete', \Activitypub\Model\Activity::TYPE_FULL );
 		$activitypub_activity->from_post( $activitypub_post );
 
-		foreach ( \Activitypub\get_follower_inboxes( $user_id ) as $inbox => $to ) {
+		$inboxes = \Activitypub\get_follower_inboxes( $user_id );
+		if($global_user){
+			$global_user_inboxes = \Activitypub\get_follower_inboxes( $global_user->ID );
+			$inboxes = array_merge($inboxes, $global_user_inboxes);
+		}
+
+		foreach ( $inboxes as $inbox => $to ) {
 			$activitypub_activity->set_to( $to );
 			$activity = $activitypub_activity->to_json(); // phpcs:ignore
 
