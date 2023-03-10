@@ -23,7 +23,10 @@ class Test_Activitypub_Activity_Dispatcher extends ActivityPub_TestCase_Cache_HT
 		),
 	);
 
-	public function test_dispatch_activity() {
+	/**
+	 * @dataProvider data_provider_test_dispatch_activity
+	 */
+	public function test_dispatch_activity(callable $dispatcher_method) {
 		$global_user_followers = array( 'https://example.com/author/john', 'https://example.org/users/doe' );
 		$global_user_id = \wp_create_user( 'global-user', 'password', 'global-user@test.com');
 		\add_option('activitypub_global_actor', 'global-user');
@@ -43,7 +46,8 @@ class Test_Activitypub_Activity_Dispatcher extends ActivityPub_TestCase_Cache_HT
 		add_filter( 'pre_http_request', array( $pre_http_request, 'filter' ), 10, 3 );
 
 		$activitypub_post = new \Activitypub\Model\Post( $post );
-		\Activitypub\Activity_Dispatcher::send_post_activity( $activitypub_post );
+
+		$dispatcher_method( $activitypub_post );
 
 		$this->assertNotEmpty( $activitypub_post->get_content() );
 
@@ -63,6 +67,16 @@ class Test_Activitypub_Activity_Dispatcher extends ActivityPub_TestCase_Cache_HT
 
 		remove_filter( 'pre_http_request', array( $pre_http_request, 'filter' ), 10 );
 	}
+
+	public function data_provider_test_dispatch_activity(): array
+	{
+		return [
+			['\Activitypub\Activity_Dispatcher::send_post_activity'],
+			['\Activitypub\Activity_Dispatcher::send_update_activity'],
+			['\Activitypub\Activity_Dispatcher::send_delete_activity'],
+		];
+	}
+
 	public function test_dispatch_mentions() {
 		$post = \wp_insert_post(
 			array(
