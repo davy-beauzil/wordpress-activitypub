@@ -142,6 +142,47 @@ class Admin {
 				'default'      => array( 'post', 'pages' ),
 			)
 		);
+
+		/*
+		 * on récupère l'ancien actor (@test@example.com par exemple)
+		 * pour vérifier s'il est différent du nouveau
+		 */
+		$old_global_actor = \get_option( 'activitypub_global_actor');
+
+		// on enregistre le nouvel actor (@blog@example.com par exemple)
+		\register_setting(
+			'activitypub',
+			'activitypub_global_actor',
+			array(
+				'type' => 'string',
+				'description' => \__( 'The actor to follow to receive all activities', 'activitypub' ),
+			)
+		);
+
+		/*
+		 * on récupère le nouvel actor (@blog@example.com par exemple)
+		 * pour le comparer avec l'ancien
+		 */
+		$new_global_actor = $_POST['activitypub_global_actor'];
+
+		// Si l'actor a changé
+		if( $old_global_actor !== $new_global_actor ) {
+			// on récupère l'utilisateur correspondant à l'ancien actor (l'utilisateur avec @test@example.com par exemple)
+			$old_user = \get_user_by('login', $old_global_actor);
+			// si cet utilisateur existe...
+			if($old_user){
+				// ... on le supprime
+				\wp_delete_user( $old_user->ID );
+			}
+
+			// si le nouvel actor (@blog@example.com) ne vaut pas null...
+			if(null !== $new_global_actor){
+				// .. on crée le nouvel utilisateur
+				$new_user = \wp_create_user( $new_global_actor, \wp_generate_password( 12, false ));
+//				var_dump($new_user);
+//				die();
+			}
+		}
 	}
 
 	public static function add_settings_help_tab() {

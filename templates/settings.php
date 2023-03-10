@@ -153,6 +153,28 @@
 			<tbody>
 				<tr>
 					<th scope="row">
+						<?php \esc_html_e( 'Global actor', 'activitypub' ); ?>
+					</th>
+					<td>
+						<input value="<?php echo esc_attr( \get_option( 'activitypub_global_actor') ); ?>" name="activitypub_global_actor" id="activitypub_global_actor" type="text" />
+						<p class="description">
+							<?php
+							echo \wp_kses(
+								\__( 'The actor to follow to receive all activities', 'activitypub' ),
+								'default'
+							);
+							?>
+						</p>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+
+
+		<table class="form-table">
+			<tbody>
+				<tr>
+					<th scope="row">
 						<?php \esc_html_e( 'Blocklist', 'activitypub' ); ?>
 					</th>
 					<td>
