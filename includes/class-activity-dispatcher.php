@@ -40,8 +40,8 @@ class Activity_Dispatcher {
 
 		$followers_urls = [\get_rest_url( null, '/activitypub/1.0/users/' . intval( $user_id ) . '/followers' )];
 		if($global_user){
-			$global_followers_url = \get_rest_url( null, '/activitypub/1.0/users/' . intval( $global_user->ID ) . '/followers' );
-			$followers_urls = [$followers_urls, $global_followers_url];
+			$global_followers_url = [\get_rest_url( null, '/activitypub/1.0/users/' . intval( $global_user->ID ) . '/followers' )];
+			$followers_urls = array_merge($followers_urls, $global_followers_url);
 		}
 
 		foreach ( $activitypub_activity->get_cc() as $cc ) {
