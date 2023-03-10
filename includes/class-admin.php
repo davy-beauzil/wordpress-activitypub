@@ -143,13 +143,9 @@ class Admin {
 			)
 		);
 
-		/*
-		 * on récupère l'ancien actor (@test@example.com par exemple)
-		 * pour vérifier s'il est différent du nouveau
-		 */
 		$old_global_actor = \get_option( 'activitypub_global_actor');
+		$old_user = \get_user_by('login', $old_global_actor);
 
-		// on enregistre le nouvel actor (@blog@example.com par exemple)
 		\register_setting(
 			'activitypub',
 			'activitypub_global_actor',
@@ -159,29 +155,20 @@ class Admin {
 			)
 		);
 
-		/*
-		 * on récupère le nouvel actor (@blog@example.com par exemple)
-		 * pour le comparer avec l'ancien
-		 */
 		$new_global_actor = $_POST['activitypub_global_actor'];
 
-		// Si l'actor a changé
-		if( $old_global_actor !== $new_global_actor ) {
-			// on récupère l'utilisateur correspondant à l'ancien actor (l'utilisateur avec @test@example.com par exemple)
-			$old_user = \get_user_by('login', $old_global_actor);
-			// si cet utilisateur existe...
+		if( null !== $new_global_actor && $old_global_actor !== $new_global_actor ) {
 			if($old_user){
-				// ... on le supprime
 				\wp_delete_user( $old_user->ID );
 			}
-
-			// si le nouvel actor (@blog@example.com) ne vaut pas null...
-			if(null !== $new_global_actor){
-				// .. on crée le nouvel utilisateur
-				$new_user = \wp_create_user( $new_global_actor, \wp_generate_password( 12, false ));
-//				var_dump($new_user);
-//				die();
+			$new_user = \get_user_by('login', $new_global_actor);
+			if($new_user){
+				trigger_error('A user with same login already exists', E_USER_ERROR);
+			}else{
+				\wp_create_user( $new_global_actor, \wp_generate_password( 12, false ));
 			}
+		}else if(!$old_user) {
+			\wp_create_user( $old_global_actor, \wp_generate_password( 12, false ));
 		}
 	}
 

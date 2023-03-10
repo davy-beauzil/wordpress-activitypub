@@ -26,18 +26,23 @@ class Activity_Dispatcher {
 	public static function send_post_activity( Model\Post $activitypub_post ) {
 		// get latest version of post
 		$user_id = $activitypub_post->get_post_author();
-		$global_user_id = 2; // TODO: récupérer l'ID de l'utilisateur global
+		$global_actor = \get_option('activitypub_global_actor');
+		$global_user = \get_user_by('login', $global_actor);
 
 		$activitypub_activity = new \Activitypub\Model\Activity( 'Create', \Activitypub\Model\Activity::TYPE_FULL );
 		$activitypub_activity->from_post( $activitypub_post );
 
-		$user_inboxes = \Activitypub\get_follower_inboxes( $user_id );
-		$global_user_inboxes = \Activitypub\get_follower_inboxes( $global_user_id );
-		$inboxes = array_merge($user_inboxes, $global_user_inboxes);
+		$inboxes = \Activitypub\get_follower_inboxes( $user_id );
+		if($global_user){
+			$global_user_inboxes = \Activitypub\get_follower_inboxes( $global_user->ID );
+			$inboxes = array_merge($inboxes, $global_user_inboxes);
+		}
 
-		$user_followers_url = \get_rest_url( null, '/activitypub/1.0/users/' . intval( $user_id ) . '/followers' );
-		$global_followers_url = \get_rest_url( null, '/activitypub/1.0/users/' . intval( $global_user_id ) . '/followers' );
-		$followers_urls = [$user_followers_url, $global_followers_url];
+		$followers_urls = [\get_rest_url( null, '/activitypub/1.0/users/' . intval( $user_id ) . '/followers' )];
+		if($global_user){
+			$global_followers_url = \get_rest_url( null, '/activitypub/1.0/users/' . intval( $global_user->ID ) . '/followers' );
+			$followers_urls = [$followers_urls, $global_followers_url];
+		}
 
 		foreach ( $activitypub_activity->get_cc() as $cc ) {
 			if (in_array($cc, $followers_urls, true)) {

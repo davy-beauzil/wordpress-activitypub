@@ -26,6 +26,7 @@ class Test_Activitypub_Activity_Dispatcher extends ActivityPub_TestCase_Cache_HT
 	public function test_dispatch_activity() {
 		$global_user_followers = array( 'https://example.com/author/john', 'https://example.org/users/doe' );
 		$global_user_id = \wp_create_user( 'global-user', 'password', 'global-user@test.com');
+		\add_option('activitypub_global_actor', 'global-user');
 		\update_user_meta( $global_user_id, 'activitypub_followers', $global_user_followers );
 
 		$followers = array( 'https://example.com/author/jon', 'https://example.org/users/username' );
