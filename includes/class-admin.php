@@ -7,6 +7,7 @@ namespace Activitypub;
  * @author Matthias Pfefferle
  */
 class Admin {
+
 	/**
 	 * Initialize the class, registering WordPress hooks
 	 */
@@ -28,6 +29,12 @@ class Admin {
 			'activitypub',
 			array( '\Activitypub\Admin', 'settings_page' )
 		);
+
+		$global_actor = \get_option('activitypub_global_actor', ACTIVITYPUB_DEFAULT_GLOBAL_ACTOR);
+		$global_user = \get_user_by('login', $global_actor);
+		if(!$global_user){
+			\wp_create_user( $global_actor, \wp_generate_password( 12, false ));
+		}
 
 		\add_action( 'load-' . $settings_page, array( '\Activitypub\Admin', 'add_settings_help_tab' ) );
 
@@ -143,7 +150,7 @@ class Admin {
 			)
 		);
 
-		$old_global_actor = \get_option( 'activitypub_global_actor');
+		$old_global_actor = \get_option( 'activitypub_global_actor', ACTIVITYPUB_DEFAULT_GLOBAL_ACTOR);
 		$old_user = \get_user_by('login', $old_global_actor);
 
 		\register_setting(
@@ -152,6 +159,7 @@ class Admin {
 			array(
 				'type' => 'string',
 				'description' => \__( 'The actor to follow to receive all activities', 'activitypub' ),
+				'default' => ACTIVITYPUB_DEFAULT_GLOBAL_ACTOR,
 			)
 		);
 

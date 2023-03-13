@@ -1,4 +1,5 @@
 <?php
+
 \load_template(
 	\dirname( __FILE__ ) . '/admin-header.php',
 	true,
@@ -156,7 +157,7 @@
 						<?php \esc_html_e( 'Global actor', 'activitypub' ); ?>
 					</th>
 					<td>
-						<input value="<?php echo esc_attr( \get_option( 'activitypub_global_actor') ); ?>" name="activitypub_global_actor" id="activitypub_global_actor" type="text" />
+						<input value="<?php echo esc_attr( \get_option( 'activitypub_global_actor', ACTIVITYPUB_DEFAULT_GLOBAL_ACTOR) ); ?>" name="activitypub_global_actor" id="activitypub_global_actor" type="text" />
 						<p class="description">
 							<?php
 							echo \wp_kses(
